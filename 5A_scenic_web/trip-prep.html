@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>行程准备 - Travalor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #2c3e50; }
+
+    /* ===== HEADER ===== */
+    .prep-header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 28px;
+      background: white; border-bottom: 1px solid #e1e8ed;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .prep-header .back-btn {
+      padding: 7px 14px; background: #ecf0f1; color: #555;
+      border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+      font-size: 13px; white-space: nowrap; transition: background 0.2s;
+    }
+    .prep-header .back-btn:hover { background: #bdc3c7; }
+    .prep-header .title-block { flex: 1; }
+    .prep-header h1 { margin: 0; font-size: 20px; color: #2c3e50; }
+    .prep-header .trip-meta { font-size: 12px; color: #95a5a6; margin-top: 2px; }
+    .save-all-btn {
+      padding: 8px 18px; background: #27ae60; color: white;
+      border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
+      font-weight: bold; transition: background 0.2s; white-space: nowrap;
+    }
+    .save-all-btn:hover { background: #219a52; }
+
+    /* ===== MAIN LAYOUT ===== */
+    .prep-body { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+    .prep-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) { .prep-grid { grid-template-columns: 1fr; } }
+
+    /* ===== SECTION CARD ===== */
+    .prep-section {
+      background: white; border-radius: 10px;
+      padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid #e8ecf1;
+    }
+    .prep-section h2 {
+      margin: 0 0 12px 0; font-size: 16px; color: #2c3e50;
+      border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;
+    }
+    .section-hint { font-size: 12px; color: #95a5a6; margin: -6px 0 10px 0; }
+    .span-full { grid-column: span 2; }
+    @media (max-width: 860px) { .span-full { grid-column: span 1; } }
+
+    /* ===== PREP ITEM ROW ===== */
+    .prep-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 6px; margin-bottom: 5px;
+      background: #f8f9fa; border: 1px solid #eee;
+      transition: background 0.15s;
+    }
+    .prep-item.checked { background: #eafaf1; border-color: #a9dfbf; }
+    .prep-item.checked .item-name { text-decoration: line-through; color: #95a5a6; }
+    .prep-item input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #27ae60; }
+    .item-name { flex: 1; font-size: 13px; }
+    .item-price { font-size: 12px; color: #e67e22; background: #fef5e7; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .item-date { font-size: 11px; color: #7f8c8d; background: #eaf4fb; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .item-count { font-size: 12px; color: #7f8c8d; display: flex; align-items: center; gap: 3px; }
+    .member-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg,#3498db,#8e44ad);
+      color: white; font-weight: bold; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .delete-btn {
+      background: none; border: none; color: #bdc3c7; cursor: pointer;
+      font-size: 16px; padding: 0 3px; line-height: 1;
+      transition: color 0.15s; flex-shrink: 0;
+    }
+    .delete-btn:hover { color: #e74c3c; }
+
+    /* ===== ADD ROW ===== */
+    .add-row {
+      display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap;
+    }
+    .add-row input, .add-row select {
+      flex: 1; min-width: 100px; padding: 7px 10px;
+      border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none;
+      background: #fbfcfd; transition: border-color 0.2s;
+    }
+    .add-row input:focus, .add-row select:focus { border-color: #3498db; }
+    .add-row input[type="date"] { flex: 0 0 130px; }
+    .add-row input[type="number"] { flex: 0 0 100px; }
+    .add-row .add-btn {
+      padding: 7px 14px; background: #3498db; color: white;
+      border: none; border-radius: 6px; cursor: pointer; font-size: 13px;
+      font-weight: bold; white-space: nowrap; transition: background 0.2s; flex-shrink: 0;
+    }
+    .add-row .add-btn:hover { background: #2980b9; }
+
+    /* ===== QUICK TAGS ===== */
+    .quick-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+    }
+    .quick-tags button {
+      padding: 4px 10px; background: #eaf4fb; color: #2471a3;
+      border: 1px solid #aed6f1; border-radius: 12px; cursor: pointer;
+      font-size: 12px; transition: background 0.15s;
+    }
+    .quick-tags button:hover { background: #d6eaf8; }
+
+    /* ===== GEAR SUGGESTIONS ===== */
+    .gear-suggestions {
+      background: #f8f9fa; border-radius: 8px;
+      padding: 12px; margin-bottom: 12px; border: 1px solid #eee;
+    }
+    .gear-cat-tabs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .gear-cat-tab {
+      padding: 4px 12px; border: 1px solid #ddd; border-radius: 12px;
+      background: white; color: #555; cursor: pointer; font-size: 12px;
+      transition: all 0.15s;
+    }
+    .gear-cat-tab.active { background: #3498db; color: white; border-color: #3498db; }
+    .gear-suggestion-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .gear-chip {
+      padding: 4px 11px; border: 1px solid #aed6f1; border-radius: 12px;
+      background: white; color: #2471a3; cursor: pointer; font-size: 12px;
+      transition: all 0.15s;
+    }
+    .gear-chip:hover { background: #eaf4fb; }
+    .gear-chip.added { background: #eafaf1; color: #1e8449; border-color: #a9dfbf; }
+
+    /* ===== GEAR CATEGORY GROUP ===== */
+    .gear-category-group { margin-bottom: 10px; }
+    .gear-cat-label {
+      font-size: 11px; font-weight: bold; color: #95a5a6;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 5px; padding-left: 2px;
+    }
+
+    /* ===== PROGRESS SECTION ===== */
+    .progress-section {
+      background: white; border-radius: 10px; padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e8ecf1;
+      margin-top: 20px;
+    }
+    .progress-section h2 { margin: 0 0 15px 0; font-size: 16px; }
+    .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .progress-label { width: 60px; font-size: 13px; color: #555; flex-shrink: 0; }
+    .progress-bar-bg {
+      flex: 1; height: 8px; background: #f0f2f5;
+      border-radius: 4px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
+      transition: width 0.4s ease;
+    }
+    .progress-text { width: 40px; text-align: right; font-size: 12px; color: #7f8c8d; flex-shrink: 0; }
+    .overall-pct {
+      font-size: 28px; font-weight: bold; color: #27ae60;
+      text-align: center; margin: 10px 0 4px 0;
+    }
+    .overall-label { text-align: center; font-size: 13px; color: #7f8c8d; margin-bottom: 15px; }
+    /* ===== COST SUMMARY ===== */
+    .cost-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #f5f5f5; font-size:13px; }
+    .cost-row:last-child { border-bottom:none; }
+    .cost-val { font-weight:bold; color:#e67e22; }
+    .cost-total { border-top:2px solid #27ae60; margin-top:4px; padding-top:8px !important; }
+    .cost-total span:first-child { font-weight:bold; color:#27ae60; }
+    .cost-total .cost-val { color:#27ae60; font-size:16px; }
+    /* Route Plan */
+    .day-plan-card { background:#f8f9fa;border:1px solid #e8ecf1;border-radius:8px;padding:12px;margin-bottom:12px; }
+    .day-plan-header { display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap; }
+    .day-plan-date { font-size:14px;font-weight:bold;color:#2c3e50;flex:1; }
+    .day-plan-action-btn { padding:4px 10px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap; }
+    .day-plan-action-btn:hover { opacity:0.85; }
+    .route-plan-item { display:flex;align-items:center;gap:5px;padding:5px 6px;border-radius:5px;border:1px solid #eee;border-top:2px solid transparent;background:white;margin-bottom:4px;cursor:grab;transition:border-color 0.12s,opacity 0.12s; }
+    .rpi-transport { background:#eafaf1;border-color:#a9dfbf; }
+    .rpi-hotel { background:#fef9e7;border-color:#f9e79f; }
+    .rpi-custom { background:#f5eef8;border-color:#d7bde2; }
+    .route-item-num { background:#3498db;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0; }
+    .route-item-name { flex:1;font-size:13px; }
+    .route-item-time { font-size:11px;color:#7f8c8d;background:#f0f2f5;padding:1px 6px;border-radius:8px;white-space:nowrap; }
+    .add-db-btn { padding:2px 7px;background:#8e44ad;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0; }
+    .prep-suggestions { display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #ddd;border-radius:5px;z-index:1000;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .prep-suggestions .suggestion-item { padding:6px 10px;cursor:pointer;font-size:12px; }
+    .prep-suggestions .suggestion-item:hover { background:#eaf4fb; }
+  </style>
+</head>
+<body>
+
+  <header class="prep-header">
+    <button class="back-btn" onclick="goBack()">← 返回主页</button>
+    <div class="title-block">
+      <h1 id="tripNameDisplay">📋 行程准备</h1>
+      <div class="trip-meta" id="tripMeta"></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:#95a5a6;white-space:nowrap;">行程日期：</span>
+        <input type="date" id="tripStartDate" style="font-size:12px;border:1px solid #e0e0e0;border-radius:4px;padding:2px 6px;" onchange="prepData.tripStartDate=this.value;autoSave()">
+        <span style="font-size:12px;color:#95a5a6;">→</span>
+        <input type="date" id="tripEndDate" style="font-size:12px;border:1px solid #e0e0e0;border-radius:4px;padding:2px 6px;" onchange="prepData.tripEndDate=this.value;autoSave()">
+      </div>
+    </div>
+    <button class="save-all-btn" onclick="saveAll()">💾 保存</button>
+    <div style="position:relative;display:inline-block;">
+      <button class="save-all-btn" onclick="toggleExportMenu(event)" style="background:#e74c3c;">📄 导出</button>
+      <div id="exportMenu" style="display:none;position:absolute;right:0;top:110%;background:white;border:1px solid #dfe6e9;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:140px;z-index:3000;overflow:hidden;">
+        <button onclick="exportToPDF();hideExportMenu()" style="display:block;width:100%;padding:10px 14px;border:none;background:white;text-align:left;cursor:pointer;font-size:13px;">📄 导出PDF</button>
+        <button onclick="exportToLongImage();hideExportMenu()" style="display:block;width:100%;padding:10px 14px;border:none;background:white;text-align:left;cursor:pointer;font-size:13px;">🖼 导出长图</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="prep-body">
+    <div class="prep-grid">
+
+      <!-- 行程人员 -->
+      <section class="prep-section" id="sec-members">
+        <h2>👥 行程人员</h2>
+        <div id="membersList"></div>
+        <div class="add-row">
+          <input type="text" id="memberInput" placeholder="添加成员姓名">
+          <button class="add-btn" onclick="addMember()">+ 添加</button>
+        </div>
+      </section>
+
+      <!-- 购路程票 -->
+      <section class="prep-section" id="sec-transport">
+        <h2>🚌 购路程票</h2>
+        <div id="transportList"></div>
+        <div class="add-row">
+          <input type="text" id="transportInput" placeholder="如：高铁票、机票…">
+          <input type="text" id="transportPrice" placeholder="金额(可选)">
+        </div>
+        <div class="add-row" style="margin-top:4px;align-items:center;">
+          <input type="text" id="transportDepartStation" placeholder="出发站点 / 机场">
+          <span style="font-size:11px;color:#95a5a6;white-space:nowrap;flex-shrink:0;">出发</span>
+          <input type="date" id="transportDepartDate">
+          <input type="time" id="transportDepartTime">
+          <input type="text" id="transportArriveStation" placeholder="到达站点 / 机场">
+          <span style="font-size:11px;color:#95a5a6;white-space:nowrap;flex-shrink:0;">→ 到达</span>
+          <input type="date" id="transportArriveDate">
+          <input type="time" id="transportArriveTime">
+          <button class="add-btn" onclick="addTransport()">+ 添加</button>
+        </div>
+        <div class="quick-tags" style="margin-top:8px;">
+          <button onclick="quickAddTransport('高铁票')">高铁票</button>
+          <button onclick="quickAddTransport('飞机票')">飞机票</button>
+          <button onclick="quickAddTransport('大巴票')">大巴票</button>
+          <button onclick="quickAddTransport('轮船票')">轮船票</button>
+          <button onclick="quickAddTransport('返程高铁票')">返程高铁票</button>
+          <button onclick="quickAddTransport('返程机票')">返程机票</button>
+          <button onclick="quickAddTransport('景区摆渡车')">景区摆渡车</button>
+        </div>
+      </section>
+
+      <!-- 景点门票 -->
+      <section class="prep-section" id="sec-scenic">
+        <h2>🎫 景点门票</h2>
+        <p class="section-hint">已根据行程自动生成，可手动调整</p>
+        <div id="scenicTicketList"></div>
+        <div class="add-row">
+          <input type="text" id="scenicTicketInput" placeholder="手动添加景点名称">
+          <input type="number" id="scenicTicketPrice" placeholder="票价(元)" min="0">
+          <input type="date" id="scenicTicketVisitDate" title="访问日期">
+          <input type="time" id="scenicTicketVisitTime" title="计划游览时间(可选)">
+          <button class="add-btn" onclick="addScenicTicket()">+ 添加</button>
+        </div>
+        <div style="margin-top:6px;">
+          <button onclick="openAddToDbModal('')" style="padding:4px 12px;background:#8e44ad;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">➕ 将新景点添加到景点库</button>
+        </div>
+      </section>
+
+      <!-- 酒店住宿 -->
+      <section class="prep-section" id="sec-hotel">
+        <h2>🏨 酒店住宿</h2>
+        <div id="hotelList"></div>
+        <div class="add-row">
+          <input type="text" id="hotelInput" placeholder="酒店名称">
+          <input type="number" id="hotelPrice" placeholder="金额(元)" min="0">
+          <input type="date" id="hotelCheckIn" title="入住日期">
+          <input type="time" id="hotelCheckInTime" title="入住时间">
+          <input type="date" id="hotelCheckOut" title="退房日期">
+          <input type="time" id="hotelCheckOutTime" title="退房时间">
+          <button class="add-btn" onclick="addHotel()">+ 添加</button>
+        </div>
+        <div class="add-row" style="margin-top:4px;position:relative;">
+          <span style="font-size:11px;color:#95a5a6;white-space:nowrap;flex-shrink:0;align-self:center;">位置搜索</span>
+          <div style="flex:1;position:relative;">
+            <input type="text" id="hotelAddressSearch" placeholder="搜索酒店位置（用于路线规划，可选）" autocomplete="off" style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;">
+            <div id="hotelAddressSuggestions" class="prep-suggestions"></div>
+          </div>
+          <div id="hotelAddressTip" style="font-size:11px;color:#27ae60;white-space:nowrap;min-width:80px;"></div>
+        </div>
+      </section>
+
+      <!-- 装备准备（全宽） -->
+      <section class="prep-section span-full" id="sec-gear">
+        <h2>🎒 装备准备</h2>
+        <p class="section-hint">点击下方常用装备快速添加，也可自定义</p>
+        <div class="gear-suggestions">
+          <div class="gear-cat-tabs" id="gearCategoryTabs"></div>
+          <div class="gear-suggestion-chips" id="gearSuggestionChips"></div>
+        </div>
+        <div id="gearList"></div>
+        <div class="add-row">
+          <input type="text" id="gearInput" placeholder="自定义装备名称">
+          <select id="gearCategory">
+            <option value="服装">服装</option>
+            <option value="徒步装备">徒步装备</option>
+            <option value="露营装备">露营装备</option>
+            <option value="电子设备">电子设备</option>
+            <option value="个人护理">个人护理</option>
+            <option value="证件财物">证件财物</option>
+            <option value="餐饮">餐饮</option>
+            <option value="其他">其他</option>
+          </select>
+          <button class="add-btn" onclick="addGear()">+ 添加</button>
+        </div>
+      </section>
+
+      <!-- 物品清单 -->
+      <section class="prep-section" id="sec-items">
+        <h2>📦 物品清单</h2>
+        <p class="section-hint">需要打包带走的物品</p>
+        <div id="itemsList"></div>
+        <div class="add-row">
+          <input type="text" id="itemInput" placeholder="添加物品">
+          <button class="add-btn" onclick="addItem()">+ 添加</button>
+        </div>
+      </section>
+
+      <!-- 待买清单 -->
+      <section class="prep-section" id="sec-shopping">
+        <h2>🛒 待买清单</h2>
+        <p class="section-hint">出发前需要购买的东西</p>
+        <div id="shoppingList"></div>
+        <div class="add-row">
+          <input type="text" id="shoppingInput" placeholder="待购物品">
+          <input type="number" id="shoppingPrice" placeholder="预算(元)" min="0">
+          <button class="add-btn" onclick="addShopping()">+ 添加</button>
+        </div>
+      </section>
+
+      <!-- 其他代办（全宽） -->
+      <section class="prep-section span-full" id="sec-todos">
+        <h2>✅ 其他代办</h2>
+        <div id="todosList"></div>
+        <div class="add-row">
+          <input type="text" id="todoInput" placeholder="添加代办事项">
+          <button class="add-btn" onclick="addTodo()">+ 添加</button>
+        </div>
+        <div class="quick-tags" style="margin-top:8px;">
+          <button onclick="quickAddTodo('购买旅行保险')">购买旅行保险</button>
+          <button onclick="quickAddTodo('确认手机流量套餐')">确认手机流量</button>
+          <button onclick="quickAddTodo('通知紧急联系人行程')">通知紧急联系人</button>
+          <button onclick="quickAddTodo('提前查看天气预报')">查看天气预报</button>
+          <button onclick="quickAddTodo('准备现金')">准备现金</button>
+          <button onclick="quickAddTodo('充好充电宝')">充好充电宝</button>
+          <button onclick="quickAddTodo('下载离线地图')">下载离线地图</button>
+          <button onclick="quickAddTodo('确认防晒、防雨准备')">防晒防雨</button>
+          <button onclick="quickAddTodo('告知家人出发时间')">告知家人行程</button>
+        </div>
+      </section>
+
+    </div><!-- end prep-grid -->
+
+    <!-- 行程路线规划（全宽） -->
+    <section class="prep-section" id="sec-route" style="margin:0 28px 20px;">
+      <h2>📍 行程路线规划</h2>
+      <p class="section-hint">为景点门票设置访问日期后，系统按天分组规划路线；可拖拽排序或点击「最短路线」自动优化。酒店位置也将显示在地图上。</p>
+      <div id="routePlanDays"></div>
+    </section>
+
+    <!-- 准备进度 -->
+    <div class="progress-section">
+      <h2>📊 准备进度</h2>
+      <div class="overall-pct" id="overallPct">0%</div>
+      <div class="overall-label" id="overallLabel">尚未开始准备</div>
+      <div id="progressBars"></div>
+    </div>
+
+    <!-- 费用汇总 -->
+    <div class="progress-section" style="margin-top:16px;">
+      <h2>💰 费用汇总</h2>
+      <div id="costSummary"><div style="font-size:12px;color:#aaa;名称">暂无费用信息</div></div>
+    </div>
+
+  </div><!-- end prep-body -->
+
+  <script src="https://webapi.amap.com/maps?v=2.0&key=20f2a209eba3601103ea8f8ad2a2016e&plugin=AMap.AutoComplete,AMap.Geocoder"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="data.js"></script>
+  <script src="scenic-seed.js"></script>
+  <script src="db.js"></script>
+  <script src="trip-prep.js"></script>
+
+  <!-- 路线地图弹窗 -->
+  <div id="routeMapModal" style="display:none;position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:18px;">
+    <div class="modal-content" style="width:min(1100px,96vw);max-width:1100px;padding:18px 18px 16px;border-radius:14px;max-height:95vh;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;">
+        <div>
+          <h3 style="margin:0;font-size:18px;color:#2c3e50;">📍 路线地图</h3>
+          <div id="routeMapTitle" style="font-size:12px;color:#7f8c8d;margin-top:3px;"></div>
+        </div>
+        <button type="button" onclick="closeRouteMapModal()" style="padding:8px 14px;background:#ecf0f1;border:none;border-radius:6px;cursor:pointer;font-size:13px;">关闭</button>
+      </div>
+      <div id="tripPrepMap" style="height:68vh;min-height:420px;border-radius:12px;overflow:hidden;border:1px solid #e8ecf1;"></div>
+    </div>
+  </div>
+
+<!-- 添加到景点库弹窗 -->
+<div id="addToDbModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9998;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:24px;width:480px;max-width:95vw;box-shadow:0 10px 40px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;">
+    <h3 style="margin:0 0 16px;font-size:17px;">➕ 添加自定义景点到景点库</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">景点名称 *</label><input type="text" id="atdbName" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;"></div>
+      <div><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">分类</label>
+        <select id="atdbCategory" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;">
+          <option value="自然风光">自然风光</option><option value="人文历史">人文历史</option>
+          <option value="博物馆">博物馆</option><option value="古镇">古镇</option>
+          <option value="主题公园">主题公园</option><option value="宗教文化">宗教文化</option>
+          <option value="徒步路线">徒步路线</option><option value="自定义" selected>自定义</option>
+        </select>
+      </div>
+      <div><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">省份</label><input type="text" id="atdbProvince" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;"></div>
+      <div><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">城市</label><input type="text" id="atdbCity" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;"></div>
+      <div><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">门票</label><input type="text" id="atdbTicket" placeholder="如：免费 / 100元" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;"></div>
+      <div><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">特色</label><input type="text" id="atdbFeatures" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;"></div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">搜索位置（确定坐标）*</label>
+      <div style="position:relative;">
+        <input type="text" id="atdbSearch" placeholder="输入景点名称或地址…" autocomplete="off" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;">
+        <div id="atdbSuggestions" class="prep-suggestions"></div>
+      </div>
+      <div id="atdbSelectedTip" style="font-size:11px;color:#27ae60;margin-top:3px;min-height:14px;"></div>
+      <input type="hidden" id="atdbLat"><input type="hidden" id="atdbLng">
+    </div>
+    <div style="margin-bottom:16px;"><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">简介</label><textarea id="atdbIntro" rows="2" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;resize:vertical;"></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeAddToDbModal()" style="padding:8px 16px;background:#ecf0f1;border:none;border-radius:6px;cursor:pointer;font-size:13px;">取消</button>
+      <button onclick="saveToDb()" style="padding:8px 20px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">✅ 保存到景点库</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理员入口 -->
+<div style="text-align:center;padding:16px 0 8px;font-size:12px;color:#bdc3c7;">
+  <a href="admin.html" style="color:#bdc3c7;text-decoration:none;">🛠 运维管理</a>
+</div>
+
+</body>
+</html>

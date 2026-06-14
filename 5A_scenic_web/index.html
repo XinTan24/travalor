@@ -6,19 +6,24 @@
   <title>5A/4A景区·徒步·博物馆打卡系统</title>
   <link rel="stylesheet" href="style.css" />
   <!-- 高德地图 JS API -->
-  <script src="https://webapi.amap.com/maps?v=2.0&key=20f2a209eba3601103ea8f8ad2a2016e"></script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=20f2a209eba3601103ea8f8ad2a2016e&plugin=AMap.AutoComplete,AMap.PlaceSearch,AMap.Geocoder"></script>
 </head>
 <body>
   <!-- 用户信息栏 -->
-  <div id="userBar" class="user-bar">
+  <div id="userBar" class="user-bar" style="display:none;">
     <span>当前用户: <strong id="currentUser"></strong></span>
     <button onclick="logout()">退出</button>
   </div>
 
   <div id="tripPanel" class="card-style" style="margin: 20px 0; padding: 20px;">
-    <h3 style="color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 15px;">我的行程</h3>
-    <div id="tripListContainer"></div>
-    <button onclick="clearAllTrips()" style="margin-top: 15px; background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#ff6b81'" onmouseout="this.style.background='#ff4757'">清空所有行程</button>
+    <div class="trip-panel-header">
+      <h3 style="color: #2c3e50; margin: 0;">我的行程</h3>
+      <button id="tripPanelToggle" onclick="toggleTripPanel()" class="trip-panel-toggle-btn">▲ 收起</button>
+    </div>
+    <div id="tripPanelBody">
+      <div id="tripListContainer"></div>
+      <button onclick="clearAllTrips()" style="margin-top: 15px; background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#ff6b81'" onmouseout="this.style.background='#ff4757'">清空所有行程</button>
+    </div>
   </div>
 
   <!-- 筛选区域 -->
@@ -36,21 +41,48 @@
       <option value="">所有等级</option>
     </select>
     
+    <!-- 活动筛选 -->
+    <select id="activitySelect">
+      <option value="">所有活动</option>
+    </select>
+
+    <!-- 最低评分筛选 -->
+    <select id="ratingSelect">
+      <option value="0">所有评分</option>
+      <option value="5">≥5分</option>
+      <option value="7">≥7分</option>
+      <option value="8">≥8分</option>
+      <option value="9">≥9分</option>
+    </select>
+
     <!-- 搜索框 -->
     <input type="text" id="searchInput" placeholder="搜索景点名称" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1;">
     
     <button id="searchBtn" onclick="applyFilters()">搜索</button>
     <button id="toggleView" onclick="toggleViewMode()">切换到地图模式</button>
+    <button id="addScenicBtn" onclick="openAddScenicModal()" style="background:#8e44ad;">＋ 添加景点</button>
     <div id="stats">已打卡：0 / 0</div>
   </div>
 
-  <!-- 列表容器 -->
-  <div id="listContainer" class="container">
-    <div id="scenicList"></div>
+  <!-- 主视图区域 -->
+  <div id="viewArea">
+    <!-- 列表容器 -->
+    <div id="listContainer" class="container">
+      <div id="scenicList"></div>
+    </div>
+
+    <!-- 路线侧边栏（查看路线时显示） -->
+    <div id="routeSidePanel"></div>
+
+    <!-- 地图容器 -->
+    <div id="mapContainer" class="map-container" style="visibility:hidden;"></div>
   </div>
 
-  <!-- 地图容器 -->
-  <div id="mapContainer" class="map-container" style="visibility:hidden;"></div>
+  <!-- 地图右键菜单 -->
+  <div id="mapContextMenu" style="display:none;position:fixed;z-index:5000;min-width:180px;background:#fff;border:1px solid #dfe6e9;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:8px 0;">
+    <button id="ctxAddScenicBtn" style="display:block;width:100%;padding:10px 14px;border:none;background:none;text-align:left;cursor:pointer;font-size:13px;color:#2c3e50;">🗺 添加自定义景点</button>
+    <button id="ctxAddPointBtn" style="display:block;width:100%;padding:10px 14px;border:none;background:none;text-align:left;cursor:pointer;font-size:13px;color:#2c3e50;">📍 仅记录坐标</button>
+  </div>
 
   <!-- 景区详情模态框 -->
   <div id="modal" class="modal">
@@ -60,6 +92,14 @@
       <div style="margin: 10px 0;">
         <span id="modalLevel" class="level-badge"></span>
         <span id="modalCategory" class="category-badge"></span>
+      </div>
+      <div id="modalActivitiesRow" style="margin: 8px 0;">
+        <strong>活动：</strong><span id="modalActivities"></span>
+      </div>
+      <div id="modalRatingRow" style="margin: 8px 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+        <strong>我的评分：</strong>
+        <span id="ratingDisplay" style="font-weight:bold;color:#f39c12;min-width:40px;">未评分</span>
+        <span id="ratingBtns" style="display:inline-flex;gap:3px;flex-wrap:wrap;"></span>
       </div>
       <p><strong>位置：</strong><span id="modalLocation"></span></p>
       <p><strong>门票：</strong><span id="modalTicket"></span></p>
@@ -85,7 +125,6 @@
   <!-- 登录/注册模态框 -->
   <div id="authModal" class="modal">
     <div class="modal-content auth-modal">
-      <span class="close">&times;</span>
       <h2 id="authTitle">用户登录</h2>
       <input type="text" id="usernameInput" placeholder="用户名" />
       <input type="password" id="passwordInput" placeholder="密码" />
@@ -94,8 +133,81 @@
     </div>
   </div>
 
+  <!-- 快速加入行程浮层 -->
+  <div id="quickTripBackdrop" onclick="closeQuickTripOverlay()" style="display:none;position:fixed;z-index:1999;inset:0;"></div>
+  <div id="quickTripOverlay" style="display:none;position:fixed;z-index:2000;background:white;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.2);padding:18px 20px;min-width:280px;max-width:340px;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid #e8ecf0;">
+    <button onclick="closeQuickTripOverlay()" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;line-height:1;">&times;</button>
+    <div style="font-weight:bold;color:#2c3e50;margin-bottom:4px;font-size:15px;">➕ 加入行程</div>
+    <div id="quickTripScenicName" style="font-size:12px;color:#888;margin-bottom:10px;"></div>
+    <div id="quickTripBtns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="quickTripInput" placeholder="输入或新建行程名称" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;" />
+      <button onclick="confirmQuickAddToTrip()" style="padding:7px 14px;background:#3498db;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">确定</button>
+    </div>
+  </div>
+
+  <!-- 添加自定义景点模态框 -->
+  <div id="addScenicModal" class="modal">
+    <div class="modal-content add-scenic-modal-content">
+      <span class="close">&times;</span>
+      <h2 id="addScenicModalTitle">🗺️ 添加自定义景点</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:10px;">通过网络搜索获取景点信息，自动填入数据库</p>
+      <div class="add-scenic-search-row">
+        <input type="text" id="addScenicSearch" placeholder="搜索景点名称、地址…（联网获取信息）" />
+        <button onclick="searchAddScenic()">🔍 搜索</button>
+      </div>
+      <div id="addScenicSearchResults" class="poi-results"></div>
+      <hr style="margin:12px 0;border:none;border-top:1px solid #eee;" />
+      <div id="addScenicForm">
+        <div class="add-form-grid">
+          <div><label>景点名称 *</label><input type="text" id="asfName" placeholder="必填" /></div>
+          <div><label>省份</label><input type="text" id="asfProvince" placeholder="如：浙江省" /></div>
+          <div><label>城市</label><input type="text" id="asfCity" placeholder="如：杭州市" /></div>
+          <div>
+            <label>分类</label>
+            <select id="asfCategory">
+              <option value="自然风光">自然风光</option>
+              <option value="人文历史">人文历史</option>
+              <option value="博物馆">博物馆</option>
+              <option value="徒步路线">徒步路线</option>
+              <option value="宗教文化">宗教文化</option>
+              <option value="古镇">古镇</option>
+              <option value="自定义" selected>自定义</option>
+            </select>
+          </div>
+          <div><label>门票</label><input type="text" id="asfTicket" placeholder="免费 / 100元" /></div>
+          <div><label>特色</label><input type="text" id="asfFeatures" placeholder="简短描述" /></div>
+          <div><label>我的评分 (0-10)</label><input type="number" id="asfRating" min="0" max="10" step="1" placeholder="可选" /></div>
+          <div style="grid-column:span 2;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;">
+              <label style="margin:0;flex:1;">活动标签（点击选中 / 再次点击取消，可多选）</label>
+              <span id="asfActivityCount" style="font-size:12px;color:#7f8c8d;"></span>
+              <button type="button" id="asfActivityToggle" onclick="window.toggleActivityPicker()" style="padding:3px 10px;background:#ecf0f1;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;">▼ 展开选择</button>
+            </div>
+            <div id="asfActivitiesWrap" style="display:none;">
+              <div id="asfActivities" class="activity-picker"></div>
+              <div style="margin-top:8px;text-align:right;">
+                <button type="button" onclick="window.confirmActivityPicker()" style="padding:5px 16px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">✓ 确认选择</button>
+              </div>
+            </div>
+          </div>
+          <div style="grid-column:span 2;"><label>简介</label><textarea id="asfIntro" rows="3" placeholder="景点详细介绍"></textarea></div>
+          <div><label>经度</label><input type="text" id="asfLng" placeholder="搜索后自动填写" /></div>
+          <div><label>纬度</label><input type="text" id="asfLat" placeholder="搜索后自动填写" /></div>
+        </div>
+        <div style="margin-top:15px;text-align:right;">
+          <button id="deleteScenicBtn" type="button" onclick="deleteEditingScenic()" style="display:none;background:#e74c3c;color:white;border:none;padding:10px 18px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:15px;margin-right:8px;">🗑 删除景点</button>
+          <button type="button" onclick="closeAddScenicModal()" style="background:#95a5a6;color:white;border:none;padding:10px 18px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:15px;margin-right:8px;">取消</button>
+          <button id="addScenicSaveBtn" onclick="saveCustomScenic()" style="background:#2ecc71;color:white;border:none;padding:10px 25px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:15px;">✅ 保存景点</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 数据和脚本 -->
   <script src="data.js"></script>
+  <script src="scenic-seed.js"></script>
+  <script src="db.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

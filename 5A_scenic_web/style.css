@@ -342,3 +342,380 @@ body {
     margin: 10% auto;
   }
 }
+
+/* ========== 自定义地图标记 ========== */
+.custom-marker-wrap {
+  position: relative;
+  cursor: pointer;
+  width: 32px;
+}
+.custom-marker-pin {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  border: 2px solid white;
+}
+.custom-marker-pin > span {
+  transform: rotate(45deg);
+  font-size: 14px;
+  line-height: 1;
+  display: block;
+}
+.custom-marker-label {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: rgba(30,39,46,0.88);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 10px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.25);
+  letter-spacing: 0.3px;
+}
+.custom-marker-wrap:hover .custom-marker-label {
+  background: rgba(52,73,94,0.95);
+  max-width: 200px;
+}
+
+/* ========== 起终点搜索面板 ========== */
+.route-location-search {
+  padding: 8px 10px;
+  background: #eaf4fb;
+  border-radius: 6px;
+  border: 1px solid #aed6f1;
+  margin-bottom: 6px;
+  position: relative;
+}
+.route-location-search > label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #2471a3;
+  display: block;
+  margin-bottom: 4px;
+}
+.route-location-search > input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #aed6f1;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+.search-suggestions {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 9999;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+.suggestion-item {
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid #f4f4f4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.suggestion-item:hover { background: #eaf4fb; }
+
+/* ========== 添加景点模态框 ========== */
+.add-scenic-modal-content { max-width: 640px; }
+.add-scenic-search-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.add-scenic-search-row input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+.add-scenic-search-row button {
+  padding: 9px 16px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.add-scenic-search-row button:hover { background: #2980b9; }
+.poi-results { max-height: 190px; overflow-y: auto; margin-bottom: 5px; }
+.poi-result-item {
+  padding: 8px 12px;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  transition: background 0.2s;
+  font-size: 13px;
+}
+.poi-result-item:hover { background: #eaf4fb; border-color: #aed6f1; }
+.add-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.add-form-grid > div > label {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 3px;
+}
+.add-form-grid > div > input,
+.add-form-grid > div > select,
+.add-form-grid > div > textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+  outline: none;
+}
+.add-form-grid > div > textarea { resize: vertical; }
+
+/* 活动标签选择器 */
+.activity-picker {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #fbfcfd;
+  max-height: 210px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  width: 100%;
+}
+.activity-picker-group {
+  margin-bottom: 8px;
+}
+.activity-picker-group-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #95a5a6;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+.activity-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.activity-chip {
+  padding: 3px 11px;
+  border-radius: 12px;
+  border: 1px solid #aed6f1;
+  background: #eaf4fb;
+  color: #2471a3;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  outline: none;
+}
+.activity-chip:hover {
+  background: #d6eaf8;
+}
+.activity-chip.selected {
+  background: #2980b9;
+  color: white;
+  border-color: #2471a3;
+}
+.trip-btn {
+  background: #3498db;
+  color: white;
+}
+.trip-btn:hover {
+  background: #2980b9;
+}
+.edit-scenic-btn {
+  background: #f39c12;
+  color: white;
+}
+.edit-scenic-btn:hover {
+  background: #e67e22;
+}
+/* Toast 提示 */
+#toastMsg {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(44,62,80,0.92);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 9999;
+  pointer-events: none;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+.custom-badge {
+  background: #8e44ad;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+}
+#addScenicBtn { background: #8e44ad !important; }
+
+/* ========== 活动标签 ========== */
+.activities-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.activity-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #eaf4fb;
+  color: #2471a3;
+  border: 1px solid #aed6f1;
+  white-space: nowrap;
+}
+/* 模态框内活动标签按大类着色 */
+#modalActivities .activity-tag[data-cat="户外探索"] {
+  background: #eafaf1; color: #1e8449; border-color: #a9dfbf;
+}
+#modalActivities .activity-tag[data-cat="轻松玩乐"] {
+  background: #fef9e7; color: #d4ac0d; border-color: #f9e79f;
+}
+#modalActivities .activity-tag[data-cat="逛吃休闲"] {
+  background: #fef5e7; color: #ca6f1e; border-color: #fad7a0;
+}
+#modalActivities .activity-tag[data-cat="文化手作"] {
+  background: #f4ecf7; color: #7d3c98; border-color: #d7bde2;
+}
+
+/* ========== 行程面板折叠 ========== */
+.trip-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #f1f2f6;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+.trip-panel-toggle-btn {
+  background: #ecf0f1;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.trip-panel-toggle-btn:hover { background: #bdc3c7; }
+
+/* ========== 路线分屏视图 ========== */
+#viewArea.split-view {
+  display: flex;
+  height: 650px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+#viewArea.split-view #mapContainer {
+  flex: 1;
+  visibility: visible !important;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+}
+#routeSidePanel {
+  display: none;
+  width: 280px;
+  min-width: 220px;
+  overflow-y: auto;
+  background: white;
+  border-right: 1px solid #e1e8ed;
+  padding: 14px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.route-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f1f2f6;
+}
+.route-close-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.route-close-btn:hover { background: #c0392b; }
+
+/* ========== 景点评分 ========== */
+.rating-badge {
+  display: inline-block;
+  background: #f39c12;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.rating-btn {
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.1s, color 0.1s;
+  min-width: 24px;
+}
+.rating-btn.active {
+  background: #f39c12;
+  color: white;
+  border-color: #e67e22;
+}
+.rating-btn:hover:not(.active) {
+  background: #fef9e7;
+  border-color: #f39c12;
+}
+#addScenicBtn:hover { background: #6c3483 !important; }

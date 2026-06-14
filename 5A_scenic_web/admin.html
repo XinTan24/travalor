@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>运维管理 - Travalor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; color: #2c3e50; }
+    .admin-header { background: #2c3e50; color: white; padding: 16px 28px; display: flex; align-items: center; gap: 16px; }
+    .admin-header h1 { margin: 0; font-size: 20px; }
+    .admin-header a { color: #bdc3c7; font-size: 13px; text-decoration: none; }
+    .admin-header a:hover { color: white; }
+    .admin-body { max-width: 900px; margin: 32px auto; padding: 0 20px; }
+    .login-box { background: white; border-radius: 12px; padding: 32px; max-width: 380px; margin: 80px auto; box-shadow: 0 4px 24px rgba(0,0,0,0.1); text-align: center; }
+    .login-box h2 { margin: 0 0 20px; font-size: 20px; }
+    .login-box input { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-bottom: 14px; outline: none; }
+    .login-box button { width: 100%; padding: 10px; background: #2c3e50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
+    .login-box button:hover { background: #3d5166; }
+    .login-err { color: #e74c3c; font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+    .card { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .card h2 { margin: 0 0 16px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; background: #e8f5e9; color: #27ae60; }
+    .badge.custom { background: #fce4ec; color: #c0392b; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e8ecf1; }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid #f0f2f5; vertical-align: top; }
+    tbody tr:hover { background: #fafbfc; }
+    .action-btn { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+    .btn-promote { background: #27ae60; color: white; }
+    .btn-promote:hover { background: #219150; }
+    .btn-delete  { background: #e74c3c; color: white; }
+    .btn-delete:hover { background: #c0392b; }
+    .btn-edit    { background: #3498db; color: white; }
+    .btn-edit:hover { background: #217dbb; }
+    .empty-hint { color: #aaa; font-size: 13px; padding: 20px 0; text-align: center; }
+    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .stat-box { background: white; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 120px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+    .stat-num { font-size: 28px; font-weight: bold; color: #2c3e50; }
+    .stat-label { font-size: 12px; color: #7f8c8d; margin-top: 4px; }
+    /* Edit modal */
+    .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center; }
+    .modal-box { background:white;border-radius:12px;padding:24px;width:460px;max-width:95vw;box-shadow:0 10px 40px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto; }
+    .modal-box h3 { margin:0 0 16px;font-size:16px; }
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px; }
+    .form-row label { font-size:12px;color:#555;display:block;margin-bottom:3px; }
+    .form-row input, .form-row select, .form-row textarea { width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px; }
+    .modal-actions { display:flex;gap:8px;justify-content:flex-end;margin-top:16px; }
+  </style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>🛠 运维管理登录</h2>
+    <input type="password" id="adminPwd" placeholder="管理员密码" onkeydown="if(event.key==='Enter')adminLogin()">
+    <div class="login-err" id="loginErr"></div>
+    <button onclick="adminLogin()">登 录</button>
+    <div style="margin-top:16px;font-size:12px;"><a href="trip-prep.html">← 返回行程准备</a></div>
+  </div>
+</div>
+
+<!-- Admin panel -->
+<div id="adminPanel" style="display:none;">
+  <div class="admin-header">
+    <h1>🛠 运维管理</h1>
+    <a href="index.html">首页</a>
+    <a href="trip-prep.html" style="margin-left:8px;">行程准备</a>
+    <div style="flex:1;"></div>
+    <span style="font-size:12px;color:#bdc3c7;">Travalor Admin</span>
+  </div>
+
+  <div class="admin-body">
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- Custom scenics -->
+    <div class="card">
+      <h2>📍 用户自定义景点 <span class="badge custom" id="customCount">0</span></h2>
+      <p style="font-size:12px;color:#7f8c8d;margin:0 0 12px;">包含从主应用和行程准备页添加的自定义景点。可将其「升级」为官方景点（去除 isCustom 标记），或直接删除。</p>
+      <div id="customScenicTable"><div class="empty-hint">加载中…</div></div>
+    </div>
+
+    <!-- Users section -->
+    <div class="card">
+      <h2>👥 注册用户 <span class="badge" id="userCount">0</span></h2>
+      <div id="usersTableContainer"><div class="empty-hint">加载中…</div></div>
+    </div>
+
+    <!-- All scenics search -->
+    <div class="card">
+      <h2>🔍 全局景点搜索</h2>
+      <input type="text" id="adminSearch" placeholder="搜索景点名称…" oninput="filterAdmin(this.value)" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;margin-bottom:12px;">
+      <div id="adminSearchResults"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit scenic modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3>✏️ 编辑景点</h3>
+    <input type="hidden" id="editId">
+    <div class="form-row">
+      <div><label>名称 *</label><input type="text" id="editName"></div>
+      <div><label>分类</label>
+        <select id="editCategory">
+          <option value="自然风光">自然风光</option><option value="人文历史">人文历史</option>
+          <option value="博物馆">博物馆</option><option value="古镇">古镇</option>
+          <option value="主题公园">主题公园</option><option value="宗教文化">宗教文化</option>
+          <option value="徒步路线">徒步路线</option><option value="自定义">自定义</option>
+        </select>
+      </div>
+      <div><label>省份</label><input type="text" id="editProvince"></div>
+      <div><label>城市</label><input type="text" id="editCity"></div>
+      <div><label>门票</label><input type="text" id="editTicket"></div>
+      <div><label>特色</label><input type="text" id="editFeatures"></div>
+      <div><label>纬度</label><input type="number" id="editLat" step="any"></div>
+      <div><label>经度</label><input type="number" id="editLng" step="any"></div>
+    </div>
+    <div style="margin-bottom:12px;"><label style="font-size:12px;color:#555;display:block;margin-bottom:3px;">简介</label><textarea id="editIntro" rows="3" style="width:100%;padding:7px;border:1px solid #ddd;border-radius:5px;font-size:13px;resize:vertical;"></textarea></div>
+    <div class="modal-actions">
+      <button onclick="closeEditModal()" style="padding:8px 16px;background:#ecf0f1;border:none;border-radius:6px;cursor:pointer;font-size:13px;">取消</button>
+      <button onclick="saveEditModal()" style="padding:8px 20px;background:#3498db;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="scenic-seed.js"></script>
+<script src="db.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
